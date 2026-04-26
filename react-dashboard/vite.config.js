@@ -2,6 +2,6 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig({
-  base: '/WavDino-Temporal-Dashboard/',
+  base: process.env.DEPLOY_TARGET === 'gh-pages' ? '/WavDino-Temporal-Dashboard/' : '/',
   plugins: [react()]
 });
