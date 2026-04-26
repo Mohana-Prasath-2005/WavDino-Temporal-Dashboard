@@ -1,31 +1,31 @@
-# React Viva Dashboard
+# Temporal Facial Dynamics-Driven Audio-Visual Emotion Recognition
 
-This is a React-based, visual-only dashboard for your project viva.
+This repository implements a complete audio-visual emotion recognition system based on the research paper "Temporal Facial Dynamics-Driven Audio-Visual Emotion Recognition Using Vision Transformers". The system captures temporal facial dynamics across video sequences and fuses them with speech representations for robust emotion classification.
 
 ## Features
 
-- White professional theme
-- No data tables, only visual charts
-- Dataset-Wise Performance
-- Overall Highlights
-- Model Comparison
-- Ranking
-- Cross-Dataset Generalization
-- Confusion Matrix (Proposed Model)
+- **Temporal Modeling**: Captures facial expression evolution across multiple frames
+- **Self-Supervised Backbones**: Uses Wav2Vec2 for audio and DINOv2 for visual features
+- **Transformer Fusion**: Cross-modal attention for effective audio-visual integration
+- **Cross-Dataset Evaluation**: Comprehensive evaluation across multiple datasets
+- **Production Ready**: Modular, well-documented, and optimized for GPU training
 
-## Run
+## Supported Datasets
 
-1. Open terminal in this folder.
-2. Install dependencies:
+- CREMA-D
+- RAVDESS  
+- AFEW
 
+## Emotion Classes
+
+- happy
+- sad
+- angry
+- neutral
+
+## Installation
+
+1. Clone the repository:
 ```bash
-npm install
-```
-
-3. Start development server:
-
-```bash
-npm run dev
-```
-
-4. Open the local URL shown by Vite.
+git clone <repository-url>
+cd emotion_recognition
