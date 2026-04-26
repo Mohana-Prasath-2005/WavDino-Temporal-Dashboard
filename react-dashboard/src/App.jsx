@@ -23,6 +23,22 @@ import {
 import SectionCard from "./components/SectionCard";
 import dashboardData from "./data/dashboardData";
 
+function useIsMobile(breakpoint = 680) {
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth <= breakpoint : false
+  );
+
+  useEffect(() => {
+    const mql = window.matchMedia(`(max-width: ${breakpoint}px)`);
+    const update = (e) => setIsMobile(e.matches);
+    update(mql);
+    mql.addEventListener("change", update);
+    return () => mql.removeEventListener("change", update);
+  }, [breakpoint]);
+
+  return isMobile;
+}
+
 function PrettyTooltip({ active, payload, label }) {
   if (!active || !payload || payload.length === 0) return null;
 
@@ -75,9 +91,11 @@ function ConfusionMatrix({ labels, values, theme }) {
     return `rgb(${r}, ${g}, ${b})`;
   };
 
+  const wrapStyle = { "--matrix-cols": labels.length };
+
   return (
-    <div className="matrix-wrap">
-      <div className="matrix-row matrix-header" style={{ gridTemplateColumns: `180px repeat(${labels.length}, minmax(90px, 1fr))` }}>
+    <div className="matrix-wrap" style={wrapStyle}>
+      <div className="matrix-row matrix-header">
         <div className="matrix-corner">Actual / Predicted</div>
         {labels.map((label) => (
           <div key={`h-${label}`} className="matrix-label">
@@ -87,7 +105,7 @@ function ConfusionMatrix({ labels, values, theme }) {
       </div>
 
       {values.map((row, i) => (
-        <div className="matrix-row" key={`r-${labels[i]}`} style={{ gridTemplateColumns: `180px repeat(${labels.length}, minmax(90px, 1fr))` }}>
+        <div className="matrix-row" key={`r-${labels[i]}`}>
           <div className="matrix-label row-label">{labels[i]}</div>
           {row.map((v, j) => (
             <div
@@ -108,6 +126,7 @@ function ConfusionMatrix({ labels, values, theme }) {
 }
 
 function App() {
+  const isMobile = useIsMobile(680);
   const [theme, setTheme] = useState(() => {
     const saved = window.localStorage.getItem("viva-theme");
     return saved === "dark" ? "dark" : "light";
@@ -255,15 +274,20 @@ function App() {
         <SectionCard title="Model Comparison" className="lifted">
           <div className="chart-box chart-large">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={modelComparison} layout="vertical" margin={{ top: 6, right: 30, left: 20, bottom: 6 }}>
+              <BarChart data={modelComparison} layout="vertical" margin={{ top: 6, right: isMobile ? 38 : 30, left: isMobile ? 4 : 20, bottom: 6 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={theme === "dark" ? "#2e4a69" : "#d8e8f4"} />
-                <XAxis type="number" domain={[80, 90]} tick={{ fill: COLORS.text, fontSize: 12 }} />
+                <XAxis type="number" domain={[80, 90]} tick={{ fill: COLORS.text, fontSize: isMobile ? 10 : 12 }} />
                 <YAxis
                   type="category"
                   dataKey="model"
-                  width={170}
-                  tick={{ fill: COLORS.text, fontSize: 11 }}
-                  tickFormatter={(v) => v.replace("Audio-Visual - Temporal (Proposed)", "Temporal (Proposed)")}
+                  width={isMobile ? 100 : 170}
+                  tick={{ fill: COLORS.text, fontSize: isMobile ? 10 : 11 }}
+                  tickFormatter={(v) =>
+                    v
+                      .replace("Audio-Visual - Temporal (Proposed)", isMobile ? "Temporal*" : "Temporal (Proposed)")
+                      .replace("Audio-Visual - Static", isMobile ? "AV-Static" : "Audio-Visual - Static")
+                      .replace("Visual - Static", isMobile ? "Visual" : "Visual - Static")
+                  }
                 />
                 <Tooltip content={<PrettyTooltip />} />
                 <Bar dataKey="accuracy" radius={[0, 8, 8, 0]}>
@@ -295,10 +319,10 @@ function App() {
                 </RadialBar>
                 <Legend
                   iconSize={10}
-                  layout="vertical"
-                  verticalAlign="middle"
-                  align="right"
-                  wrapperStyle={{ color: COLORS.text }}
+                  layout={isMobile ? "horizontal" : "vertical"}
+                  verticalAlign={isMobile ? "bottom" : "middle"}
+                  align={isMobile ? "center" : "right"}
+                  wrapperStyle={{ color: COLORS.text, fontSize: isMobile ? 10 : 12 }}
                   formatter={(value, entry, idx) => `${modelRankingData[idx].rank} ${modelRankingData[idx].model}`}
                 />
                 <Tooltip formatter={(v, n, item) => [`${Number(v).toFixed(1)}%`, item.payload.model]} />
