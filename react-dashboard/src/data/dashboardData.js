@@ -1,5 +1,5 @@
 const dashboardData = {
-  projectTitle: "WavDino - Temporal DashBoard",
+  projectTitle: "WavDino - Temporal Metrics DashBoard",
   projectSubtitle: "",
   overallHighlights: {
     overallAccuracy: 87.3,

@@ -1,20 +1,12 @@
 import { useEffect, useState } from "react";
 import {
-  Area,
-  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
-  Legend,
-  PolarAngleAxis,
-  PolarGrid,
-  PolarRadiusAxis,
-  Radar,
-  RadarChart,
-  RadialBar,
-  RadialBarChart,
+  ComposedChart,
   LabelList,
+  Line,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -71,6 +63,291 @@ function KpiCard({ label, value, sub, percent, tone = "primary" }) {
     </article>
   );
 }
+
+function RankingLeaderboard({ data }) {
+  const accuracies = data.map((d) => d.accuracy);
+  const max = Math.max(...accuracies);
+  const min = Math.min(...accuracies);
+  const range = max - min || 1;
+
+  const tierClass = (idx) => {
+    if (idx === 0) return "rank-gold";
+    if (idx === 1) return "rank-silver";
+    if (idx === 2) return "rank-bronze";
+    return "";
+  };
+
+  return (
+    <div className="ranking-list">
+      {data.map((entry, i) => {
+        const fillPct = 35 + ((entry.accuracy - min) / range) * 65;
+        return (
+          <div
+            key={entry.model}
+            className={`rank-row ${tierClass(i)} ${entry.proposed ? "rank-proposed" : ""}`}
+            style={{
+              "--fill-pct": `${fillPct}%`,
+              "--rank-color": entry.color
+            }}
+          >
+            <div className="rank-badge">
+              <span className="rank-number">{i + 1}</span>
+              {i === 0 ? <span className="rank-crown" aria-hidden="true">★</span> : null}
+            </div>
+            <div className="rank-content">
+              <div className="rank-header">
+                <span className="rank-model">
+                  {entry.model}
+                  {entry.proposed ? <em className="rank-tag">PROPOSED</em> : null}
+                </span>
+                <span className="rank-accuracy">{entry.accuracy.toFixed(1)}%</span>
+              </div>
+              <div className="rank-bar" aria-hidden="true">
+                <div className="rank-bar-fill" />
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ModelComparisonChart({ data, theme, COLORS, isMobile }) {
+  const chartData = data.map((m) => ({
+    model: m.model,
+    short: isMobile
+      ? m.model
+          .replace("Audio-Visual - Temporal (Proposed)", "Temporal*")
+          .replace("Audio-Visual - Static", "AV-Static")
+          .replace("Visual - Static", "Visual")
+          .replace("Audio-Only", "Audio")
+      : m.model
+          .replace("Audio-Visual - Temporal (Proposed)", "Temporal (Proposed)")
+          .replace("Audio-Visual - Static", "Audio-Visual Static")
+          .replace("Visual - Static", "Visual Static"),
+    Accuracy: m.accuracy,
+    F1: Number((m.f1Score * 100).toFixed(2)),
+    f1Raw: m.f1Score,
+    proposed: m.proposed
+  }));
+
+  const dotFill = theme === "dark" ? "#101a2b" : "#ffffff";
+
+  return (
+    <div className="mc-chart">
+      <div className="mc-chart-legend">
+        <span className="cd-legend-item">
+          <i className="cd-legend-swatch mc-acc" />
+          Accuracy
+        </span>
+        <span className="cd-legend-item">
+          <i className="cd-legend-swatch mc-proposed" />
+          Proposed
+        </span>
+        <span className="cd-legend-item">
+          <i className="cd-legend-swatch mc-f1line" />
+          F1 Score
+        </span>
+      </div>
+      <div className="chart-box chart-large">
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={chartData} margin={{ top: 28, right: 18, left: 0, bottom: 8 }}>
+            <defs>
+              <linearGradient id="mcAccGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={COLORS.primary} stopOpacity={1} />
+                <stop offset="100%" stopColor={COLORS.primary} stopOpacity={0.45} />
+              </linearGradient>
+              <linearGradient id="mcAccProposedGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={COLORS.accent} stopOpacity={1} />
+                <stop offset="100%" stopColor={COLORS.accent} stopOpacity={0.45} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke={theme === "dark" ? "#2e4a69" : "#d8e8f4"} vertical={false} />
+            <XAxis
+              dataKey="short"
+              tick={{ fill: COLORS.text, fontSize: isMobile ? 10 : 11, fontWeight: 600 }}
+              axisLine={{ stroke: theme === "dark" ? "#2e4a69" : "#c9ddee" }}
+              tickLine={false}
+              tickMargin={8}
+              interval={0}
+            />
+            <YAxis
+              domain={[80, 92]}
+              tick={{ fill: COLORS.text, fontSize: 11 }}
+              axisLine={false}
+              tickLine={false}
+              width={34}
+            />
+            <Tooltip
+              content={<PrettyTooltip />}
+              cursor={{ fill: theme === "dark" ? "rgba(115,183,255,0.06)" : "rgba(18,53,91,0.04)" }}
+            />
+            <Bar dataKey="Accuracy" radius={[8, 8, 0, 0]} animationDuration={1100} barSize={isMobile ? 28 : 46}>
+              {chartData.map((entry, i) => (
+                <Cell key={`mc-cell-${i}`} fill={entry.proposed ? "url(#mcAccProposedGrad)" : "url(#mcAccGrad)"} />
+              ))}
+              <LabelList
+                dataKey="Accuracy"
+                position="top"
+                formatter={(v) => `${v.toFixed(1)}%`}
+                fill={COLORS.text}
+                fontSize={isMobile ? 10 : 11}
+                fontWeight={700}
+              />
+            </Bar>
+            <Line
+              type="monotone"
+              dataKey="F1"
+              stroke={COLORS.warm}
+              strokeWidth={3}
+              dot={{ r: 5, stroke: COLORS.warm, strokeWidth: 2.5, fill: dotFill }}
+              activeDot={{ r: 7, stroke: COLORS.warm, strokeWidth: 2.5, fill: dotFill }}
+              animationDuration={1200}
+              animationBegin={300}
+            >
+              <LabelList
+                dataKey="f1Raw"
+                position="top"
+                formatter={(v) => v.toFixed(2)}
+                fill={COLORS.warm}
+                fontSize={isMobile ? 10 : 11}
+                fontWeight={800}
+                offset={12}
+              />
+            </Line>
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+function DatasetStatCard({ name, accuracy, f1, samples, gradientId }) {
+  const radius = 52;
+  const circumference = 2 * Math.PI * radius;
+  const accFraction = Math.max(0, Math.min(100, accuracy)) / 100;
+  const offset = circumference * (1 - accFraction);
+  const f1Pct = Math.max(0, Math.min(100, f1 * 100));
+
+  return (
+    <div className="ds-card">
+      <div className="ds-ring-wrap">
+        <svg className="ds-ring-svg" viewBox="0 0 140 140" aria-hidden="true">
+          <defs>
+            <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" className="ds-grad-start" />
+              <stop offset="100%" className="ds-grad-end" />
+            </linearGradient>
+          </defs>
+          <circle cx="70" cy="70" r={radius} className="ds-ring-track" />
+          <circle
+            cx="70"
+            cy="70"
+            r={radius}
+            className="ds-ring-progress"
+            stroke={`url(#${gradientId})`}
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            style={{ "--ring-c": circumference, "--ring-target": offset }}
+          />
+        </svg>
+        <div className="ds-ring-value">
+          <strong>{accuracy.toFixed(1)}%</strong>
+          <span>Accuracy</span>
+        </div>
+      </div>
+      <h3 className="ds-name">{name}</h3>
+      <div className="ds-meta">
+        <div className="ds-f1">
+          <span className="ds-f1-label">F1</span>
+          <div className="ds-f1-bar">
+            <div className="ds-f1-fill" style={{ "--f1-pct": `${f1Pct}%` }} />
+          </div>
+          <strong className="ds-f1-val">{f1.toFixed(2)}</strong>
+        </div>
+        <p className="ds-samples">{samples.toLocaleString()} samples</p>
+      </div>
+    </div>
+  );
+}
+
+function CrossDatasetBars({ data, theme, COLORS, isMobile }) {
+  const chartData = data.map((s) => ({
+    split: isMobile ? `${s.source.slice(0, 4)}→${s.target.slice(0, 4)}` : `${s.source} → ${s.target}`,
+    Accuracy: s.accuracy,
+    F1: Number((s.f1 * 100).toFixed(2)),
+    f1Raw: s.f1
+  }));
+
+  return (
+    <div className="cd-bars">
+      <div className="cd-bars-legend">
+        <span className="cd-legend-item">
+          <i className="cd-legend-swatch acc" />
+          Accuracy
+        </span>
+        <span className="cd-legend-item">
+          <i className="cd-legend-swatch f1" />
+          F1 Score
+        </span>
+      </div>
+      <div className="chart-box chart-medium">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={chartData} margin={{ top: 22, right: 12, left: 0, bottom: 6 }} barCategoryGap="22%">
+            <defs>
+              <linearGradient id="cdBarAcc" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={COLORS.primary} stopOpacity={1} />
+                <stop offset="100%" stopColor={COLORS.primary} stopOpacity={0.45} />
+              </linearGradient>
+              <linearGradient id="cdBarF1" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={COLORS.accent} stopOpacity={1} />
+                <stop offset="100%" stopColor={COLORS.accent} stopOpacity={0.45} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke={theme === "dark" ? "#2e4a69" : "#d8e8f4"} vertical={false} />
+            <XAxis
+              dataKey="split"
+              tick={{ fill: COLORS.text, fontSize: isMobile ? 10 : 12, fontWeight: 600 }}
+              axisLine={{ stroke: theme === "dark" ? "#2e4a69" : "#c9ddee" }}
+              tickLine={false}
+              tickMargin={8}
+            />
+            <YAxis
+              domain={[60, 95]}
+              tick={{ fill: COLORS.text, fontSize: 11 }}
+              axisLine={false}
+              tickLine={false}
+              width={36}
+            />
+            <Tooltip content={<PrettyTooltip />} cursor={{ fill: theme === "dark" ? "rgba(115,183,255,0.06)" : "rgba(18,53,91,0.04)" }} />
+            <Bar dataKey="Accuracy" fill="url(#cdBarAcc)" radius={[8, 8, 0, 0]} animationDuration={1100}>
+              <LabelList
+                dataKey="Accuracy"
+                position="top"
+                formatter={(v) => `${v.toFixed(1)}%`}
+                fill={COLORS.text}
+                fontSize={isMobile ? 10 : 11}
+                fontWeight={700}
+              />
+            </Bar>
+            <Bar dataKey="F1" fill="url(#cdBarF1)" radius={[8, 8, 0, 0]} animationDuration={1100} animationBegin={150}>
+              <LabelList
+                dataKey="f1Raw"
+                position="top"
+                formatter={(v) => v.toFixed(2)}
+                fill={COLORS.text}
+                fontSize={isMobile ? 10 : 11}
+                fontWeight={700}
+              />
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
 
 function ConfusionMatrix({ labels, values, theme }) {
   const flat = values.flat();
@@ -158,45 +435,21 @@ function App() {
   const { projectTitle, overallHighlights, datasetPerformance, modelComparison, crossDatasetGeneralization, confusionMatrix } = dashboardData;
   const rainColumns = Array.from({ length: 26 }, (_, i) => i);
 
-  const TwoLineDatasetTick = ({ x, y, payload }) => {
-    const raw = String(payload.value || "");
-    const [from, to] = raw.split(" -> ");
-
-    return (
-      <g transform={`translate(${x},${y})`}>
-        <text textAnchor="middle" fill={COLORS.text} fontSize={11}>
-          <tspan x="0" dy="12">{from || raw}</tspan>
-          {to ? <tspan x="0" dy="13">to {to}</tspan> : null}
-        </text>
-      </g>
-    );
-  };
-
-  const datasetChartData = datasetPerformance.map((d) => ({
-    dataset: d.dataset.replace("CREMA-D", "CREMA"),
-    Accuracy: d.accuracy,
-    "F1-Score": d.f1Score * 100
-  }));
-
   const modelRankingData = [...modelComparison]
     .sort((a, b) => b.accuracy - a.accuracy)
     .map((m, i) => ({
       rank: `#${i + 1}`,
       model: m.model.replace("Audio-Visual - Temporal (Proposed)", "Temporal (Proposed)"),
       accuracy: m.accuracy,
+      proposed: m.proposed,
       fill: m.proposed ? COLORS.accent : COLORS.secondary,
       color: m.proposed ? COLORS.accent : COLORS.secondary
     }));
 
-  const crossData = crossDatasetGeneralization.map((d) => ({
-    split: d.split,
-    splitDisplay: d.split
-      .replace("CREMA-D to RAVDESS", "CREMA-D -> RAVDESS")
-      .replace("CREMA-D to AFEW", "CREMA-D -> AFEW")
-      .replace("RAVDESS to CREMA-D", "RAVDESS -> CREMA-D"),
-    Accuracy: d.accuracy,
-    "F1-Score": d.f1Score * 100
-  }));
+  const crossSplits = crossDatasetGeneralization.map((d) => {
+    const [source, target] = d.split.split(" to ");
+    return { source, target, accuracy: d.accuracy, f1: d.f1Score };
+  });
 
   return (
     <>
@@ -256,111 +509,30 @@ function App() {
 
       <div className="grid">
         <SectionCard title="Dataset-Wise Performance" className="lifted">
-          <div className="chart-box chart-large">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart data={datasetChartData} outerRadius={114}>
-                <PolarGrid stroke={theme === "dark" ? "#315070" : "#c9ddee"} />
-                <PolarAngleAxis dataKey="dataset" tick={{ fill: COLORS.text, fontSize: 12 }} />
-                <PolarRadiusAxis domain={[60, 100]} tick={{ fill: COLORS.text, fontSize: 10 }} />
-                <Radar name="Accuracy" dataKey="Accuracy" stroke={COLORS.primary} fill={COLORS.primary} fillOpacity={0.35} />
-                <Radar name="F1-Score" dataKey="F1-Score" stroke={COLORS.accent} fill={COLORS.accent} fillOpacity={0.28} />
-                <Legend wrapperStyle={{ color: COLORS.text }} />
-                <Tooltip content={<PrettyTooltip />} />
-              </RadarChart>
-            </ResponsiveContainer>
+          <div className="ds-grid">
+            {datasetPerformance.map((d, i) => (
+              <DatasetStatCard
+                key={d.dataset}
+                name={d.dataset}
+                accuracy={d.accuracy}
+                f1={d.f1Score}
+                samples={d.samples}
+                gradientId={`ds-grad-${i}`}
+              />
+            ))}
           </div>
         </SectionCard>
 
         <SectionCard title="Model Comparison" className="lifted">
-          <div className="chart-box chart-large">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={modelComparison} layout="vertical" margin={{ top: 6, right: isMobile ? 38 : 30, left: isMobile ? 4 : 20, bottom: 6 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke={theme === "dark" ? "#2e4a69" : "#d8e8f4"} />
-                <XAxis type="number" domain={[80, 90]} tick={{ fill: COLORS.text, fontSize: isMobile ? 10 : 12 }} />
-                <YAxis
-                  type="category"
-                  dataKey="model"
-                  width={isMobile ? 100 : 170}
-                  tick={{ fill: COLORS.text, fontSize: isMobile ? 10 : 11 }}
-                  tickFormatter={(v) =>
-                    v
-                      .replace("Audio-Visual - Temporal (Proposed)", isMobile ? "Temporal*" : "Temporal (Proposed)")
-                      .replace("Audio-Visual - Static", isMobile ? "AV-Static" : "Audio-Visual - Static")
-                      .replace("Visual - Static", isMobile ? "Visual" : "Visual - Static")
-                  }
-                />
-                <Tooltip content={<PrettyTooltip />} />
-                <Bar dataKey="accuracy" radius={[0, 8, 8, 0]}>
-                  {modelComparison.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.proposed ? COLORS.accent : COLORS.primary} />
-                  ))}
-                  <LabelList dataKey="accuracy" position="right" formatter={(v) => `${v.toFixed(1)}%`} fill={COLORS.text} />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <ModelComparisonChart data={modelComparison} theme={theme} COLORS={COLORS} isMobile={isMobile} />
         </SectionCard>
 
         <SectionCard title="Ranking" className="lifted">
-          <div className="chart-box chart-medium">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadialBarChart
-                innerRadius="18%"
-                outerRadius="92%"
-                data={modelRankingData}
-                startAngle={180}
-                endAngle={-180}
-              >
-                <PolarAngleAxis type="number" domain={[78, 90]} tick={false} />
-                <RadialBar minAngle={15} background clockWise dataKey="accuracy">
-                  {modelRankingData.map((entry, index) => (
-                    <Cell key={`rank-${index}`} fill={entry.fill} />
-                  ))}
-                </RadialBar>
-                <Legend
-                  iconSize={10}
-                  layout={isMobile ? "horizontal" : "vertical"}
-                  verticalAlign={isMobile ? "bottom" : "middle"}
-                  align={isMobile ? "center" : "right"}
-                  wrapperStyle={{ color: COLORS.text, fontSize: isMobile ? 10 : 12 }}
-                  formatter={(value, entry, idx) => `${modelRankingData[idx].rank} ${modelRankingData[idx].model}`}
-                />
-                <Tooltip formatter={(v, n, item) => [`${Number(v).toFixed(1)}%`, item.payload.model]} />
-              </RadialBarChart>
-            </ResponsiveContainer>
-          </div>
+          <RankingLeaderboard data={modelRankingData} />
         </SectionCard>
 
         <SectionCard title="Cross-Dataset Generalization" className="lifted">
-          <div className="chart-box chart-medium">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={crossData} margin={{ top: 10, right: 10, left: 0, bottom: 24 }}>
-                <defs>
-                  <linearGradient id="crossAcc" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={COLORS.primary} stopOpacity={0.42} />
-                    <stop offset="100%" stopColor={COLORS.primary} stopOpacity={0.05} />
-                  </linearGradient>
-                  <linearGradient id="crossF1" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={COLORS.accent} stopOpacity={0.35} />
-                    <stop offset="100%" stopColor={COLORS.accent} stopOpacity={0.06} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke={theme === "dark" ? "#2e4a69" : "#d8e8f4"} />
-                <XAxis
-                  dataKey="splitDisplay"
-                  interval={0}
-                  tick={<TwoLineDatasetTick />}
-                  height={76}
-                  tickMargin={10}
-                />
-                <YAxis domain={[60, 90]} tick={{ fill: COLORS.text, fontSize: 12 }} />
-                <Tooltip content={<PrettyTooltip />} />
-                <Legend verticalAlign="top" height={24} wrapperStyle={{ color: COLORS.text }} />
-                <Area type="monotone" dataKey="Accuracy" stroke={COLORS.primary} fill="url(#crossAcc)" strokeWidth={3} />
-                <Area type="monotone" dataKey="F1-Score" stroke={COLORS.accent} fill="url(#crossF1)" strokeWidth={3} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          <CrossDatasetBars data={crossSplits} theme={theme} COLORS={COLORS} isMobile={isMobile} />
         </SectionCard>
 
         <SectionCard title="Confusion Matrix (Proposed Model)" className="lifted">
