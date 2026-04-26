@@ -541,7 +541,7 @@ function AudioBackboneSection({ data, insight, isMobile }) {
   );
 }
 
-function FusionArchitectureFlow({ selection }) {
+function FusionArchitectureFlow({ selection, theme }) {
   return (
     <div className="arch-wrap">
       <div className="arch-row arch-encoders">
@@ -631,7 +631,7 @@ function FusionArchitectureFlow({ selection }) {
 
       <figure className="arch-figure">
         <img
-          src="/research-architecture.png"
+          src={theme === "dark" ? "/research-architecture-dark.png" : "/research-architecture-light.png"}
           alt="Multimodal Fusion Architecture diagram: video frames and audio waveform feed DINOv2 visual encoder and Wav2Vec 2.0 audio encoder, projected and fused via a transformer encoder before classification."
           loading="lazy"
         />
@@ -890,7 +890,7 @@ function App() {
             </SectionCard>
 
             <SectionCard title="Final Model Selection & Fusion Architecture" className="lifted arch-section">
-              <FusionArchitectureFlow selection={backboneResearch.finalSelection} />
+              <FusionArchitectureFlow selection={backboneResearch.finalSelection} theme={theme} />
             </SectionCard>
           </div>
         </>

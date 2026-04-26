@@ -66,6 +66,11 @@
   box-sizing: border-box;
 }
 
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
   font-family: "Rajdhani", "Segoe UI", Tahoma, sans-serif;
@@ -74,15 +79,16 @@ body {
     radial-gradient(circle at 8% 8%, var(--bg-radial-1), transparent 40%),
     radial-gradient(circle at 92% 12%, var(--bg-radial-2), transparent 33%),
     linear-gradient(180deg, var(--bg-start) 0%, var(--bg-end) 100%);
-  overflow-x: hidden;
 }
 
 .app-shell {
   width: min(1320px, 100%);
+  max-width: 100%;
   margin: 0 auto;
   padding: 1.2rem clamp(0.7rem, 2.5vw, 1.4rem) 2.1rem;
   position: relative;
   z-index: 2;
+  overflow-x: clip;
 }
 
 .tech-rain {
@@ -1405,13 +1411,20 @@ body {
 .research-divider p {
   margin: 0;
   font-family: "Orbitron", "Rajdhani", sans-serif;
-  font-size: clamp(0.85rem, 2.2vw, 1.05rem);
-  letter-spacing: 0.16em;
+  font-size: clamp(0.78rem, 2.2vw, 1.05rem);
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--primary);
   font-weight: 800;
-  white-space: nowrap;
   text-align: center;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.research-subtitle {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .research-subtitle {
@@ -2182,7 +2195,7 @@ body {
   width: 100%;
   height: auto;
   border-radius: 10px;
-  background: #ffffff;
+  background: var(--panel);
   border: 1px solid var(--line-soft);
   box-shadow: 0 6px 14px var(--card-shadow);
   margin: 0 auto;
