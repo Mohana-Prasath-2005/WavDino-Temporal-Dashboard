@@ -885,9 +885,9 @@ body {
 
 .ds-ring-value strong {
   font-family: "Orbitron", "Rajdhani", sans-serif;
-  font-size: 1.4rem;
+  font-size: 1.15rem;
   font-weight: 800;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   color: var(--text);
 }
 
@@ -980,8 +980,8 @@ body {
     height: 96px;
     margin-bottom: 0.45rem;
   }
-  .ds-ring-value strong { font-size: 1rem; }
-  .ds-ring-value span { font-size: 0.56rem; }
+  .ds-ring-value strong { font-size: 0.78rem; }
+  .ds-ring-value span { font-size: 0.5rem; letter-spacing: 0.12em; }
   .ds-name {
     font-size: 0.78rem;
     margin-bottom: 0.4rem;
