@@ -1,0 +1,13 @@
+[build]
+  command = "pip install -r requirements.txt"
+  publish = "react-dashboard/dist"
+  environment = { PYTHON_VERSION = "3.14" }
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[build.processing]
+  skip_processing = false
+
+[[plugins]]
+  package = "@netlify/plugin-functions-install-core"
