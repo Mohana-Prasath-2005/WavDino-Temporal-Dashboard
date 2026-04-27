@@ -831,6 +831,42 @@ function App() {
             <KpiCard label="Best Model" value="Temporal Fusion" sub={overallHighlights.bestModel} tone="warm" />
           </section>
 
+          <section className="report-download-section">
+            <h2>Proof of Concept</h2>
+            <div className="report-download-btns">
+              <a
+                href="/13_30_50_Final_Project_Report.pdf"
+                download
+                className="report-download-btn"
+                aria-label="Download Final Project Report"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                📄 Final Project Report
+              </a>
+              <a
+                href="/Publication Report - 133050.pdf"
+                download
+                className="report-download-btn"
+                aria-label="Download Publication Report"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                📄 Publication Report
+              </a>
+              <a
+                href="https://temporal-web-demo.netlify.app/"
+                className="report-download-btn"
+                aria-label="Project Demo"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ background: '#1f9d8f', color: '#fff', borderColor: '#1f9d8f' }}
+              >
+                🚀 Project Demo
+              </a>
+            </div>
+          </section>
+
           <div className="grid">
             <SectionCard title="Dataset-Wise Performance" className="lifted">
               <div className="ds-grid">

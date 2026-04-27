@@ -181,6 +181,50 @@ body {
   filter: brightness(1.04);
 }
 
+/* Report Download Section */
+.report-download-section {
+  margin: 2.2rem 0 2.5rem 0;
+  padding: 1.5rem 1.2rem;
+  background: var(--panel);
+  border-radius: 18px;
+  box-shadow: 0 4px 18px var(--section-shadow);
+  border: 1px solid var(--line);
+  text-align: center;
+}
+.report-download-section h2 {
+  font-size: 1.25rem;
+  margin-bottom: 1.1rem;
+  font-family: "Orbitron", "Rajdhani", sans-serif;
+  color: var(--primary);
+}
+.report-download-btns {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.report-download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 2.1rem;
+  font-size: 1.08rem;
+  font-family: "Orbitron", "Rajdhani", sans-serif;
+  border-radius: 999px;
+  border: 1.5px solid var(--primary);
+  background: linear-gradient(135deg, var(--panel), color-mix(in srgb, var(--panel), var(--primary) 10%));
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 2px 8px var(--card-shadow);
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+}
+.report-download-btn:hover {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 4px 16px var(--card-shadow-hover);
+}
+
 .hero h1 {
   margin: 0;
   font-family: "Orbitron", "Rajdhani", sans-serif;
